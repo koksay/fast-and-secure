@@ -1,0 +1,126 @@
+# Bootstrap Flux
+
+To start our GitOps journey with [Flux](https://fluxcd.io/), we need to bootstrap it first:
+
+```bash
+flux check --pre
+► checking prerequisites
+✔ Kubernetes 1.25.3 >=1.20.6-0
+✔ prerequisites checks passed
+```
+
+If the checks are successful, you can install Flux on the cluster.
+
+Let’s install Flux on it - if you need to use other options, check out the installation page.
+
+```bash
+export GITHUB_USER=koksay
+export GITHUB_TOKEN=<GITHUB_TOKEN>
+
+flux bootstrap github \
+  --owner=$GITHUB_USER \
+  --repository=fast-and-secure \
+  --branch=main \
+  --path=./gitops/clusters/my-cluster \
+  --personal
+```
+
+## Install necessary applications
+
+### cert-manager
+
+Create a HelmRepository
+
+```bash
+flux create source helm cert-manager \
+  --url https://charts.jetstack.io \
+  --interval=5m \
+  --export > ./gitops/clusters/my-cluster/flux-source-helm-cert-manager-chart.yaml
+```
+
+Create a HelmRelease
+
+```bash
+cat <<EOF > /tmp/cm-values.yaml
+installCRDs: true
+EOF
+
+flux create helmrelease cert-manager \
+  --chart cert-manager \
+  --source HelmRepository/cert-manager.flux-system \
+  --release-name cert-manager \
+  --target-namespace cert-manager \
+  --create-target-namespace \
+  --values /tmp/cm-values.yaml \
+  --chart-version 1.13.3 \
+  --export > ./gitops/clusters/my-cluster/flux-hr-cert-manager.yaml
+```
+
+Create a `ClusterIssuer`:
+
+```bash
+cat <<EOF > ./gitops/clusters/my-cluster/cert-manager-cluster-issuer.yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-nginx
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+EOF
+```
+
+### ingress-nginx
+
+Create a HelmRepository
+
+```bash
+flux create source helm ingress-nginx \
+  --url https://kubernetes.github.io/ingress-nginx \
+  --interval=5m \
+  --export > ./gitops/clusters/my-cluster/flux-source-helm-ingress-nginx-chart.yaml
+```
+
+Create a HelmRelease
+
+```bash
+# Get the Ingress IP address
+export INGRESS_IP=$(gcloud compute addresses list --filter="region:europe-west3" --filter="name=fast-and-secure-addr" --format="get(address)")
+
+cat <<EOF > /tmp/ingress-values.yaml
+controller:
+  service:
+    loadBalancerIP: ${INGRESS_IP}
+EOF
+
+flux create helmrelease ingress-nginx \
+  --chart ingress-nginx \
+  --source HelmRepository/ingress-nginx.flux-system \
+  --release-name ingress-nginx \
+  --target-namespace ingress-nginx \
+  --create-target-namespace \
+  --values /tmp/ingress-values.yaml \
+  --chart-version 4.8.4 \
+  --export > ./gitops/clusters/my-cluster/flux-hr-ingress-nginx.yaml
+```
+
+### Deploy
+
+Commit changes and see the GitOps magic:
+
+```bash
+git add .
+git commit -am "Deploy nginx and cert-manager"
+git push
+
+## wait and check:
+kubectl wait hr cert-manager -n flux-system --for=condition=ready
+kubectl wait hr ingress-nginx -n flux-system --for=condition=ready
+kubectl get hr -A
+```
