@@ -115,6 +115,9 @@ flux create helmrelease ingress-nginx \
 Commit changes and see the GitOps magic:
 
 ```bash
+## first pull the changes by flux bootstrapping
+git pull
+
 git add .
 git commit -am "Deploy nginx and cert-manager"
 git push
