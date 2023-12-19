@@ -103,7 +103,8 @@ git commit -am "Deploy nginx and cert-manager"
 git push
 
 ## wait and check:
-kubectl wait hr cert-manager -n flux-system --for=condition=ready
-kubectl wait hr ingress-nginx -n flux-system --for=condition=ready
-kubectl get hr -A
+kubectl get helmrepo,hr -n flux-system
+
+kubectl wait hr cert-manager -n flux-system --for=condition=ready --timeout=600s
+kubectl wait hr ingress-nginx -n flux-system --for=condition=ready --timeout=600s
 ```
