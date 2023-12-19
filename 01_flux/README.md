@@ -9,14 +9,16 @@ flux check --pre
 ✔ prerequisites checks passed
 ```
 
-If the checks are successful, you can install Flux on the cluster.
-
-Let’s install Flux on it - if you need to use other options, check out the installation page.
+If the checks are successful, you can install Flux on the cluster. First export GitHub credentials:
 
 ```bash
 export GITHUB_USER=koksay
 export GITHUB_TOKEN=<GITHUB_TOKEN>
+```
 
+Let’s install Flux on it - if you need to use other options, check out the installation page.
+
+```bash
 flux bootstrap github \
   --owner=$GITHUB_USER \
   --repository=fast-and-secure \
@@ -38,13 +40,17 @@ flux create source helm cert-manager \
   --export > ./gitops/clusters/my-cluster/flux-source-helm-cert-manager-chart.yaml
 ```
 
-Create a HelmRelease
+Prepare `values.yaml` for the helm chart:
 
 ```bash
 cat <<EOF > /tmp/cm-values.yaml
 installCRDs: true
 EOF
+```
 
+Create a HelmRelease
+
+```bash
 flux create helmrelease cert-manager \
   --chart cert-manager \
   --source HelmRepository/cert-manager.flux-system \
@@ -67,7 +73,7 @@ flux create source helm ingress-nginx \
   --export > ./gitops/clusters/my-cluster/flux-source-helm-ingress-nginx-chart.yaml
 ```
 
-Create a HelmRelease
+Prepare `values.yaml` for the helm chart:
 
 ```bash
 # Get the Ingress IP address
@@ -78,7 +84,11 @@ controller:
   service:
     loadBalancerIP: ${INGRESS_IP}
 EOF
+```
 
+Create a HelmRelease
+
+```bash
 flux create helmrelease ingress-nginx \
   --chart ingress-nginx \
   --source HelmRepository/ingress-nginx.flux-system \
