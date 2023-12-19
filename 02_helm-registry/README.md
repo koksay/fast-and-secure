@@ -146,3 +146,10 @@ git push
 
 flux get helmreleases -A
 ```
+
+When the chart is deployed, make sure it's verified:
+
+```bash
+kubectl get helmchart flux-system-webserver -n flux-system \
+  -ojsonpath='{.status.conditions[?(@.type=="SourceVerified")]}' | jq
+```
