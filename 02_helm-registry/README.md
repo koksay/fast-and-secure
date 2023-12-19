@@ -40,7 +40,7 @@ cat <<EOF > /tmp/zot-values.yaml
 ingress:
   enabled: true
   annotations:
-    cert-manager.io/issuer: "letsencrypt"
+    cert-manager.io/cluster-issuer: "letsencrypt"
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
