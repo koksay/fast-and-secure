@@ -56,26 +56,6 @@ flux create helmrelease cert-manager \
   --export > ./gitops/clusters/my-cluster/flux-hr-cert-manager.yaml
 ```
 
-Create a `ClusterIssuer`:
-
-```bash
-cat <<EOF > ./gitops/clusters/my-cluster/cert-manager-cluster-issuer.yaml
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: letsencrypt
-spec:
-  acme:
-    server: https://acme-v02.api.letsencrypt.org/directory
-    privateKeySecretRef:
-      name: letsencrypt-nginx
-    solvers:
-      - http01:
-          ingress:
-            class: nginx
-EOF
-```
-
 ### ingress-nginx
 
 Create a HelmRepository

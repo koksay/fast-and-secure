@@ -1,5 +1,27 @@
 # Deploy the Registry and Start Using it
 
+## ClusterIssuer
+
+Create a `ClusterIssuer` for the Ingress:
+
+```bash
+cat <<EOF > ./gitops/clusters/my-cluster/cert-manager-cluster-issuer.yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-nginx
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+EOF
+```
+
 ## Deploy zot
 
 Create a HelmRepository
@@ -11,7 +33,7 @@ flux create source helm zot \
   --export > ./gitops/clusters/my-cluster/flux-source-helm-zot-chart.yaml
 ```
 
-Create a HelmRelease
+Prepare `values.yaml` for the helm release:
 
 ```bash
 cat <<EOF > /tmp/zot-values.yaml
@@ -33,7 +55,11 @@ ingress:
       hosts:
         - fast-and-secure.k8c.io
 EOF
+```
 
+Create a HelmRelease
+
+```bash
 flux create helmrelease zot \
   --chart zot \
   --source HelmRepository/zot.flux-system \
@@ -45,28 +71,36 @@ flux create helmrelease zot \
   --export > ./gitops/clusters/my-cluster/flux-hr-zot.yaml
 ```
 
+Push to Git:
+
+```bash
+git add .
+git commit -am "Deploy zot registry"
+git push
+```
+
 ## Create, sign, push, and use a Helm Chart
 
 Create a directory for the chart
 
 ```bash
-mkdir -p helm-oci-demo
-cd helm-oci-demo
+mkdir -p /tmp/helm-oci-demo
+cd /tmp/helm-oci-demo
 ```
 
 Create an example chart
 
 ```bash
-helm create nginx
-helm package nginx
+helm create webserver
+helm package webserver
 ```
 
 Push the helm chart to the OCI registry
 
 ```bash
-helm push nginx-0.1.0.tgz oci://fast-and-secure.k8c.io
+helm push webserver-0.1.0.tgz oci://fast-and-secure.k8c.io
 # output:
-# Pushed: 178.62.227.10:30725/nginx:0.1.0
+# Pushed: 178.62.227.10:30725/webserver:0.1.0
 # Digest: sha256:557c75156abce75d720f5c1f8d90dec1e1cc9c665c17865373374ab4794186a0
 ```
 
@@ -75,39 +109,39 @@ Sign and verify with cosign
 ```bash
 $> cosign generate-key-pair
 $> cosign sign -key cosign.key \
-   fast-and-secure.k8c.io/nginx@sha256:557c75156abce75d720f5c1f8d90dec1e1cc9c665c17865373374ab4794186a0 
+   fast-and-secure.k8c.io/webserver@sha256:557c75156abce75d720f5c1f8d90dec1e1cc9c665c17865373374ab4794186a0 
 
 
 ## verify
 cosign verify --key cosign.key \
-   fast-and-secure.k8c.io/nginx@sha256:557c75156abce75d720f5c1f8d90dec1e1cc9c665c17865373374ab4794186a0
+   fast-and-secure.k8c.io/webserver@sha256:557c75156abce75d720f5c1f8d90dec1e1cc9c665c17865373374ab4794186a0
 
 kubectl -n flux-system create secret generic cosign-pub \
   --from-file=cosign.pub=cosign.pub
 ```
 
-Now install NGINX from our registry
+Now install Webserver from our registry
 
 ```bash
 flux create source helm demo-charts\
     --url=oci://fast-and-secure.k8c.io \
     --interval=5m \
-    --export> ./clusters/my-cluster/flux-source-helm-nginx.yaml
+    --export> ./clusters/my-cluster/flux-source-helm-webserver.yaml
 
-flux create helmrelease nginx \
+flux create helmrelease webserver \
     --source=HelmRepository/demo-charts \
-    --chart=nginx \
+    --chart=webserver \
     --interval=5m \
-    --release-name nginx \
+    --release-name webserver \
     --target-namespace=default \
-    --export | yq '.spec.chart.spec|=({"verify": { "provider": "cosign", "secretRef": { "name": "cosign-pub" } } } +.)' > ./clusters/my-cluster/flux-hr-nginx.yaml
+    --export | yq '.spec.chart.spec|=({"verify": { "provider": "cosign", "secretRef": { "name": "cosign-pub" } } } +.)' > ./clusters/my-cluster/flux-hr-webserver.yaml
 ```
 
 Update git repo and watch flux magic
 
 ```bash
 git add .
-git commit -am "Add NGINX deployment"
+git commit -am "Add Webserver deployment"
 git push
 
 flux get helmreleases -A
