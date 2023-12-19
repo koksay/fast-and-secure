@@ -113,7 +113,7 @@ $> cosign sign -key cosign.key \
 
 
 ## verify
-cosign verify --key cosign.key \
+cosign verify --key cosign.pub \
    fast-and-secure.k8c.io/webserver@sha256:557c75156abce75d720f5c1f8d90dec1e1cc9c665c17865373374ab4794186a0
 
 kubectl -n flux-system create secret generic cosign-pub \
@@ -126,7 +126,7 @@ Now install Webserver from our registry
 flux create source helm demo-charts\
     --url=oci://fast-and-secure.k8c.io \
     --interval=5m \
-    --export> ./clusters/my-cluster/flux-source-helm-webserver.yaml
+    --export> ./gitops/clusters/my-cluster/flux-source-helm-webserver.yaml
 
 flux create helmrelease webserver \
     --source=HelmRepository/demo-charts \
@@ -134,7 +134,7 @@ flux create helmrelease webserver \
     --interval=5m \
     --release-name webserver \
     --target-namespace=default \
-    --export | yq '.spec.chart.spec|=({"verify": { "provider": "cosign", "secretRef": { "name": "cosign-pub" } } } +.)' > ./clusters/my-cluster/flux-hr-webserver.yaml
+    --export | yq '.spec.chart.spec|=({"verify": { "provider": "cosign", "secretRef": { "name": "cosign-pub" } } } +.)' > ./gitops/clusters/my-cluster/flux-hr-webserver.yaml
 ```
 
 Update git repo and watch flux magic
