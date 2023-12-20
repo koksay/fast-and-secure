@@ -77,7 +77,7 @@ Prepare `values.yaml` for the helm chart:
 
 ```bash
 # Get the Ingress IP address
-export INGRESS_IP=$(gcloud compute addresses list --filter="region:europe-west3" --filter="name=fast-and-secure-addr" --format="get(address)")
+export INGRESS_IP=$(gcloud compute addresses list --filter="region:europe-west1" --filter="name=fast-and-secure-addr" --format="get(address)")
 
 cat <<EOF > /tmp/ingress-values.yaml
 controller:

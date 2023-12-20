@@ -67,7 +67,7 @@ flux create helmrelease zot \
   --target-namespace zot \
   --create-target-namespace \
   --values /tmp/zot-values.yaml \
-  --chart-version 0.1.40 \
+  --chart-version 0.1.42 \
   --export > ./gitops/clusters/my-cluster/flux-hr-zot.yaml
 ```
 
