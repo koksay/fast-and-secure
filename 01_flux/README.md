@@ -96,7 +96,7 @@ flux create helmrelease ingress-nginx \
   --target-namespace ingress-nginx \
   --create-target-namespace \
   --values /tmp/ingress-values.yaml \
-  --chart-version 4.8.4 \
+  --chart-version 4.8.3 \
   --export > ./gitops/clusters/my-cluster/flux-hr-ingress-nginx.yaml
 ```
 
