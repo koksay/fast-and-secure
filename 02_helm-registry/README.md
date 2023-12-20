@@ -104,6 +104,8 @@ helm push webserver-0.1.0.tgz oci://fast-and-secure.k8c.io
 # Digest: sha256:557c75156abce75d720f5c1f8d90dec1e1cc9c665c17865373374ab4794186a0
 ```
 
+Check the chart on the [Zot UI](https://fast-and-secure.k8c.io/)
+
 Sign with cosign.
 
 > Select GitHub on the opening browser window to login to sigstore.
@@ -146,6 +148,8 @@ cosign verify \
   --certificate-oidc-issuer https://github.com/login/oauth \
   fast-and-secure.k8c.io/webserver:0.1.0
 ```
+
+Check again the chart on the [Zot UI](https://fast-and-secure.k8c.io/)
 
 ### Deploy with Flux
 
