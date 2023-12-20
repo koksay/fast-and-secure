@@ -100,25 +100,54 @@ Push the helm chart to the OCI registry
 ```bash
 helm push webserver-0.1.0.tgz oci://fast-and-secure.k8c.io
 # output:
-# Pushed: 178.62.227.10:30725/webserver:0.1.0
+# Pushed: fast-and-secure.k8c.io/webserver:0.1.0
 # Digest: sha256:557c75156abce75d720f5c1f8d90dec1e1cc9c665c17865373374ab4794186a0
 ```
 
-Sign and verify with cosign
+Sign with cosign.
+
+> Select GitHub on the opening browser window to login to sigstore.
 
 ```bash
-$> cosign generate-key-pair
-$> cosign sign -key cosign.key \
-   fast-and-secure.k8c.io/webserver@sha256:557c75156abce75d720f5c1f8d90dec1e1cc9c665c17865373374ab4794186a0 
+cosign sign fast-and-secure.k8c.io/webserver:0.1.0
 
+# even better, sigh with SHA256:
+cosign sign fast-and-secure.k8c.io/webserver@sha256:557c75156abce75d720f5c1f8d90dec1e1cc9c665c17865373374ab4794186a0
 
-## verify
-cosign verify --key cosign.pub \
-   fast-and-secure.k8c.io/webserver@sha256:557c75156abce75d720f5c1f8d90dec1e1cc9c665c17865373374ab4794186a0
+# output:
+# Generating ephemeral keys...
+# Retrieving signed certificate...
+#
+#        The sigstore service, hosted by sigstore a Series of LF Projects, LLC, is provided pursuant to the Hosted Project Tools Terms of Use, available at https://lfprojects.org/policies/hosted-project-tools-terms-of-use/.
+#        Note that if your submission includes personal data associated with this signed artifact, it will be part of an immutable record.
+#        This may include the email address associated with the account with which you authenticate your contractual Agreement.
+#        This information will be used for signing this artifact and will be stored in public transparency logs and cannot be removed later, and is subject to the Immutable Record notice at https://lfprojects.org/policies/hosted-project-tools-immutable-records/.
 
-kubectl -n flux-system create secret generic cosign-pub \
-  --from-file=cosign.pub=cosign.pub
+# By typing 'y', you attest that (1) you are not submitting the personal data of any other person; and (2) you understand and agree to the statement and the Agreement terms at the URLs listed above.
+# Are you sure you would like to continue? [y/N] y
+# Your browser will now be opened to:
+# https://oauth2.sigstore.dev/auth/auth?access_type=online&client_id=sigstore&code_challenge=kGaDDKFtPBswqbt2XLP0vG8eatOcX-h2qIJywmWengU&code_challenge_method=S256&nonce=2ZnT5VupQNksB4Tu6gfMiiPKWgp&redirect_uri=http%3A%2F%2Flocalhost%3A42617%2Fauth%2Fcallback&response_type=code&scope=openid+email&state=2ZnT5UuIYnWtsTwv7fhVqZZyyuY
+# Successfully verified SCT...
+# WARNING: Image reference fast-and-secure.k8c.io/webserver:0.1.0 uses a tag, not a digest, to identify the image to sign.
+#    This can lead you to sign a different image than the intended one. Please use a
+#    digest (example.com/ubuntu@sha256:abc123...) rather than tag
+#    (example.com/ubuntu:latest) for the input to cosign. The ability to refer to
+#    images by tag will be removed in a future release.
+
+# tlog entry created with index: 58132223
+# Pushing signature to: fast-and-secure.k8c.io/webserver
 ```
+
+Verify with cosign:
+
+```bash
+cosign verify \
+  --certificate-identity koray.oksay@gmail.com \
+  --certificate-oidc-issuer https://github.com/login/oauth \
+  fast-and-secure.k8c.io/webserver:0.1.0
+```
+
+### Deploy with Flux
 
 Now install Webserver from our registry
 
@@ -134,7 +163,7 @@ flux create helmrelease webserver \
     --interval=5m \
     --release-name webserver \
     --target-namespace=default \
-    --export | yq '.spec.chart.spec|=({"verify": { "provider": "cosign", "secretRef": { "name": "cosign-pub" } } } +.)' > ./gitops/clusters/my-cluster/flux-hr-webserver.yaml
+    --export | yq '.spec.chart.spec|=({"verify": { "provider": "cosign" } } +.)' > ./gitops/clusters/my-cluster/flux-hr-webserver.yaml
 ```
 
 Update git repo and watch flux magic
