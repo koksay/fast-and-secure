@@ -2,7 +2,6 @@
 
 ![image](https://github.com/koksay/fast-and-secure/assets/4434544/461d87c3-c618-4b3e-ae46-aa67b37dfd08)
 
-
 ## Bootstrap Flux
 
 To start our GitOps journey with [Flux](https://fluxcd.io/), we need to bootstrap it first:
@@ -116,9 +115,12 @@ git pull
 git add .
 git commit -am "Deploy nginx and cert-manager"
 git push
+```
 
-## wait and check:
-kubectl get helmrepo,hr -n flux-system
+Wait and check:
+
+```bash
+watch kubectl get helmrepo,helmrelease -n flux-system
 
 kubectl wait hr cert-manager -n flux-system --for=condition=ready --timeout=600s
 kubectl wait hr ingress-nginx -n flux-system --for=condition=ready --timeout=600s
