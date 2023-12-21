@@ -1,4 +1,9 @@
-# Bootstrap Flux
+# Overview
+
+![image](https://github.com/koksay/fast-and-secure/assets/4434544/461d87c3-c618-4b3e-ae46-aa67b37dfd08)
+
+
+## Bootstrap Flux
 
 To start our GitOps journey with [Flux](https://fluxcd.io/), we need to bootstrap it first:
 
