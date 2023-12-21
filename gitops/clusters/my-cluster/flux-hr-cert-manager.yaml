@@ -9,6 +9,8 @@ spec:
     spec:
       verify:
         provider: cosign
+        secretRef:
+          name: cert-manager-pub
       chart: cert-manager
       reconcileStrategy: ChartVersion
       sourceRef:
