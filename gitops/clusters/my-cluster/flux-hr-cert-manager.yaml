@@ -7,6 +7,8 @@ metadata:
 spec:
   chart:
     spec:
+      verify:
+        provider: cosign
       chart: cert-manager
       reconcileStrategy: ChartVersion
       sourceRef:
