@@ -6,4 +6,4 @@ metadata:
   namespace: flux-system
 spec:
   interval: 5m0s
-  url: https://ghcr.io/koksay
+  url: oci://ghcr.io/koksay/zot
