@@ -111,10 +111,10 @@ Sign with cosign.
 > Select GitHub on the opening browser window to login to sigstore.
 
 ```bash
-cosign sign fast-and-secure.k8c.io/webserver:0.1.0
+COSIGN_EXPERIMENTAL=1 cosign sign --registry-referrers-mode=oci-1-1 fast-and-secure.k8c.io/webserver:0.1.0
 
 # even better, sigh with SHA256:
-cosign sign fast-and-secure.k8c.io/webserver@sha256:557c75156abce75d720f5c1f8d90dec1e1cc9c665c17865373374ab4794186a0
+COSIGN_EXPERIMENTAL=1 cosign sign --registry-referrers-mode=oci-1-1 fast-and-secure.k8c.io/webserver@sha256:557c75156abce75d720f5c1f8d90dec1e1cc9c665c17865373374ab4794186a0
 
 # output:
 # Generating ephemeral keys...
@@ -146,6 +146,7 @@ Verify with cosign:
 cosign verify \
   --certificate-identity koray.oksay@gmail.com \
   --certificate-oidc-issuer https://github.com/login/oauth \
+  --experimental-oci11=true \
   fast-and-secure.k8c.io/webserver:0.1.0
 ```
 
