@@ -150,25 +150,40 @@ cosign verify \
   fast-and-secure.k8c.io/webserver:0.1.0
 ```
 
+> [!IMPORTANT]
+> As OCI referrers mode introduced by OCI spec v1.1.0 is still experimental and not yet supported by flux, we also need to sign the artifact the old way:
+> ```bash
+> cosign sign fast-and-secure.k8c.io/webserver:0.1.0
+> ```
+
 Check again the chart on the [Zot UI](https://fast-and-secure.k8c.io/)
 
 ### Deploy with Flux
 
 Now install Webserver from our registry
 
-```bash
-flux create source helm demo-charts\
-    --url=oci://fast-and-secure.k8c.io \
-    --interval=5m \
-    --export> ./gitops/clusters/my-cluster/flux-source-helm-webserver.yaml
+Create the `OCIRepository`:
 
+```bash
+flux create source oci webserver \
+    --url=oci://fast-and-secure.k8c.io/webserver \
+    --tag=0.1.0 \
+    --interval=10m \
+    --verify-provider=cosign \
+    --verify-issuer="^https://github.com/login/oauth$" \
+    --verify-subject="^koray.oksay@gmail.com$" \
+    --export> ./gitops/clusters/my-cluster/flux-source-oci-webserver.yaml
+```
+
+Create the `HelmRelease` using the `OCIRepository`:
+
+```bash
 flux create helmrelease webserver \
-    --source=HelmRepository/demo-charts \
-    --chart=webserver \
+    --chart-ref=OCIRepository/webserver \
     --interval=5m \
     --release-name webserver \
     --target-namespace=default \
-    --export | yq '.spec.chart.spec|=({"verify": { "provider": "cosign" } } +.)' > ./gitops/clusters/my-cluster/flux-hr-webserver.yaml
+    --export > ./gitops/clusters/my-cluster/flux-hr-webserver.yaml
 ```
 
 Update git repo and watch flux magic
@@ -184,6 +199,7 @@ flux get helmreleases -A
 When the chart is deployed, make sure it's verified:
 
 ```bash
-kubectl get helmchart flux-system-webserver -n flux-system \
+kubectl get ocirepository webserver -n flux-system \
   -ojsonpath='{.status.conditions[?(@.type=="SourceVerified")]}' | jq
 ```
+
