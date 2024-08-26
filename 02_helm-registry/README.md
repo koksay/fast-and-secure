@@ -28,7 +28,7 @@ Create a HelmRepository
 
 ```bash
 flux create source helm zot \
-  --url http://zotregistry.io/helm-charts \
+  --url http://zotregistry.dev/helm-charts \
   --interval=5m \
   --export > ./gitops/clusters/my-cluster/flux-source-helm-zot-chart.yaml
 ```
@@ -67,7 +67,7 @@ flux create helmrelease zot \
   --target-namespace zot \
   --create-target-namespace \
   --values /tmp/zot-values.yaml \
-  --chart-version 0.1.42 \
+  --chart-version 0.1.60 \
   --export > ./gitops/clusters/my-cluster/flux-hr-zot.yaml
 ```
 
