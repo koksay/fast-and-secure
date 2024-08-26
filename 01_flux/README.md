@@ -62,7 +62,7 @@ flux create helmrelease cert-manager \
   --target-namespace cert-manager \
   --create-target-namespace \
   --values /tmp/cm-values.yaml \
-  --chart-version 1.13.3 \
+  --chart-version 1.15.3 \
   --export > ./gitops/clusters/my-cluster/flux-hr-cert-manager.yaml
 ```
 
@@ -100,7 +100,7 @@ flux create helmrelease ingress-nginx \
   --target-namespace ingress-nginx \
   --create-target-namespace \
   --values /tmp/ingress-values.yaml \
-  --chart-version 4.8.3 \
+  --chart-version 4.11.2 \
   --export > ./gitops/clusters/my-cluster/flux-hr-ingress-nginx.yaml
 ```
 
